@@ -1,0 +1,75 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auto-tracing-mutating-webhook
+  labels:
+    app: auto-tracing-mutating-webhook
+spec:
+  publishNotReadyAddresses: true
+  ports:
+    - port: 443
+      targetPort: 5000
+  selector:
+    app: auto-tracing-mutating-webhook
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auto-tracing-mutating-webhook
+  labels:
+    app: auto-tracing-mutating-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auto-tracing-mutating-webhook
+  template:
+    metadata:
+      name: auto-tracing-mutating-webhook
+      labels:
+        app: auto-tracing-mutating-webhook
+    spec:
+      containers:
+        - name: auto-tracing-mutating-webhook
+          image: s4intlaurent/auto-tracing-webhook:latest
+          imagePullPolicy: Always
+          env:
+          - name: JAEGER_AGENT_PORT
+            value: "5775"
+          - name: JAEGER_AGENT_HOST
+            value: "jaeger-agent.default.svc"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 128Mi
+            requests:
+              cpu: 250m
+              memory: 64Mi
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: auto-tracing-mutating-webhook
+  labels:
+    app: auto-tracing-mutating-webhook
+webhooks:
+  - name: auto-tracing-mutating-webhook.default.svc.cluster.local
+    clientConfig:
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURTVENDQWpHZ0F3SUJBZ0lVSksvVkFFL05TR2xSQ1FPajBhaVFYdmI3MWwwd0RRWUpLb1pJaHZjTkFRRUwKQlFBd05ERXlNREFHQTFVRUF3d3BZWFYwYnkxMGNtRmphVzVuTFcxMWRHRjBhVzVuTFhkbFltaHZiMnN1WkdWbQpZWFZzZEM1emRtTXdIaGNOTWpBd01UQXhNakV3T1RNM1doY05ORGN3TlRFNU1qRXdPVE0zV2pBME1USXdNQVlEClZRUUREQ2xoZFhSdkxYUnlZV05wYm1jdGJYVjBZWFJwYm1jdGQyVmlhRzl2YXk1a1pXWmhkV3gwTG5OMll6Q0MKQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFMQWlXRkkyejBxbmdSQXpETVY4REtwNAoyQURNekRHcnd3K3daVFIyd2FxS3o0cVI1VGYzVWs4ZFFKNkkvbEw3ampUZlQ3TGJsMzYzdzVVWFpZNVNzQXJnCnRFRFUyTytKcjlQMWRtTTJnVTd5eE12OWgwQ2lHekxBRE1kQlBTWUllZGVFaTZKNitwZXF4K1ZwWVlJNE01NEUKT1loUmVoV01zYVkwcnVBd3RnNkJHNGFWcEZYYlFRLzZpTll5ajFHZll0NWszdlE3eU5haWYvREUyNzIySWNLSwozaUxQUTEzL1pTVHJGY0JtNllXNlNHaElrK1ova0VLMTRob2wyTVB4UXV2eDJycmpUb0hjOFRvcFowZ01oeUN0CnNMb2xjdFhpcjdqSFk4M3FoaTU1cEtSTTN5SFRrSEEwVU1ROTlqR2JQVWZaTHh1bHgyRjBuQVVZcW1mVlpHOEMKQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFRk5rSmtzM29wTTZFOHpXZUZvR2diMmNiRENWR01COEdBMVVkSXdRWQpNQmFBRk5rSmtzM29wTTZFOHpXZUZvR2diMmNiRENWR01BOEdBMVVkRXdFQi93UUZNQU1CQWY4d0RRWUpLb1pJCmh2Y05BUUVMQlFBRGdnRUJBRjVMSEgzZ0JvL1ZadVNvSEFkcW9DeTJ6WnEwZzVkZ2hhUS9CcmFRQ2pWT0p4azYKOU53NTQ0RndYY0szNGNvWFV0dERUQlFZbDdnZFhoeUk1RVRRdnVYN1huQVJyZ3JQZDZzeUJ2Sk5zUnkvd0o5OApVN2NzOG1pVmFUUDd2bjJWUjI2RHpZL2tJS2pPU1VzNWozbmNhb0JqM0RFNFR3NVMvcmVveUZaelVPV1pyaEdlCllFcVUxcVBoYzVOU2Jjek1WL0lTcHBiYXYyOXEyR3ZDT2FDZExCWXRGck9KNkE1cHhMdlNyWlo0Y0JEVGNQa0cKbVdvQm1QNVFNcVF3Ty9zbTJrV1g0ZGRjNnJkOE1ZZm56TDI0QmVrQmt6RHdYcFY1NDFiYmpXRUNGWjNpeUY1TAoyTGQyTERMOGpvOEJYSUtKd2tDWTlBMWg0YWUvTUFEQjRlRzQ3ODg9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+      service:
+        name: auto-tracing-mutating-webhook
+        namespace: default
+        path: "/decorate"
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+    failurePolicy: Fail
+    namespaceSelector:
+      matchLabels:
+        autotrace: enabled
