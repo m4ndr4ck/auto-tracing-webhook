@@ -12,7 +12,7 @@ Ensure jaeger is installed:
 
 Apply the webhook to kubernetes
 
-```kubectl apply -f webhook.yml```
+```kubectl apply -f https://github.com/m4ndr4ck/auto-tracing-webhook/blob/master/webhook.yml```
 
 Tag your namespace with the ```autotrace``` label:
 
