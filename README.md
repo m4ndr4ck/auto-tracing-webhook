@@ -8,11 +8,11 @@ The webhook simply modifies the tagged deployment by adding the [java-specialage
 
 Ensure jaeger is installed:
 
-```kubectl apply -f https://github.com/m4ndr4ck/auto-tracing-webhook/blob/master/jaeger-all-in-one-template.yml```
+```kubectl apply -f https://raw.githubusercontent.com/m4ndr4ck/auto-tracing-webhook/master/jaeger-all-in-one-template.yml```
 
 Apply the webhook to kubernetes
 
-```kubectl apply -f https://github.com/m4ndr4ck/auto-tracing-webhook/blob/master/webhook.yml```
+```kubectl apply -f https://raw.githubusercontent.com/m4ndr4ck/auto-tracing-webhook/master/webhook.yml```
 
 Tag your namespace with the ```autotrace``` label:
 
